@@ -1,4 +1,3 @@
-import { HOUR_COLORS } from '../types'
 
 export interface HourSelectorProps {
   selectedHour: number | null
