@@ -64,10 +64,10 @@ const SPECIAL_DATES: Record<string, SpecialDate> = {
 function getHolidayName(year: number, month: number, day: number): string | null {
   const fixedKey = `${month}-${day}`;
   if (FIXED_HOLIDAYS[fixedKey]) return FIXED_HOLIDAYS[fixedKey];
-  
+
   const variableKey = `${year}-${month}-${day}`;
   if (VARIABLE_HOLIDAYS_2026[variableKey]) return VARIABLE_HOLIDAYS_2026[variableKey];
-  
+
   return null;
 }
 
@@ -90,20 +90,20 @@ function generateGridDays(year: number, month: number): number[] {
   const daysInMonth = getDaysInMonth(year, month)
   const firstDayOfMonth = getFirstDayOfMonth(year, month)
   const grid: number[] = []
-  
+
   for (let i = 0; i < firstDayOfMonth; i++) {
     grid.push(0)
   }
-  
+
   for (let day = 1; day <= daysInMonth; day++) {
     grid.push(day)
   }
-  
+
   const remaining = 42 - grid.length
   for (let i = 0; i < remaining; i++) {
     grid.push(0)
   }
-  
+
   return grid
 }
 
@@ -144,10 +144,10 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
     if (isAnimating) return
     setIsAnimating(true)
     setSlideDir(dir)
-    
+
     // clear inline transform from drag so class transform fully takes over
     if (containerRef.current) {
-       containerRef.current.style.transform = ''
+      containerRef.current.style.transform = ''
     }
 
     setTimeout(() => {
@@ -184,9 +184,9 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
     if (!isDragging.current) return
     isDragging.current = false
     const threshold = 60
-    
+
     if (containerRef.current) {
-       containerRef.current.style.transition = ''
+      containerRef.current.style.transition = ''
     }
 
     if (dragDeltaX.current < -threshold) {
@@ -196,7 +196,7 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
     } else {
       // snap back
       if (containerRef.current) {
-         containerRef.current.style.transform = 'translateX(0)'
+        containerRef.current.style.transform = 'translateX(0)'
       }
     }
     dragStartX.current = null
@@ -225,7 +225,7 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
         <div className="calendar-month-header">
           {MONTH_NAMES[adjustedMonth]} {adjustedYear}
         </div>
-        
+
         <div className="calendar-weekdays">
           {DAY_NAMES.map((name, index) => (
             <div key={name} className={`calendar-weekday ${index === 0 || index === 6 ? 'calendar-weekend' : ''}`}>
@@ -239,7 +239,7 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
             if (day === 0) {
               return <div key={`empty-${index}`} className="calendar-day calendar-day--empty" />
             }
-
+            //sdads
             const date = new Date(adjustedYear, adjustedMonth, day)
             const dateKey = formatDateKey(date)
             const hourAssigned = selectedHours[dateKey]
@@ -299,9 +299,9 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
         </button>
 
         {onHourSelect && (
-          <HourSelector 
-            selectedHour={selectedHour} 
-            onHourSelect={onHourSelect} 
+          <HourSelector
+            selectedHour={selectedHour}
+            onHourSelect={onHourSelect}
           />
         )}
         <button
