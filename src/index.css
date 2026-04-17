@@ -425,83 +425,77 @@ body {
 }
 
 /* ===========================================
-    Calendar Component - 3 Month View
+    Calendar Component - 3 Month Slider
     =========================================== */
+
+/* Outer clip — hides the prev/next months */
+.calendar-slider-viewport {
+  overflow: hidden;
+  width: 100%;
+  cursor: grab;
+  user-select: none;
+  touch-action: pan-y;
+}
+.calendar-slider-viewport:active {
+  cursor: grabbing;
+}
+
+/* The sliding strip — 3 × 33.333% wide cards laid side-by-side */
 .calendar-months-container {
   display: flex;
-  gap: var(--space-4);
-  justify-content: center;
+  width: 100%;
   align-items: flex-start;
+  /* transform & transition applied inline from React */
+  will-change: transform;
 }
 
 .calendar-month-wrapper {
-  flex: 1;
-  min-width: 280px;
-  max-width: 340px;
+  flex: 0 0 33.333%;
+  width: 33.333%;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-2) var(--space-2);
+  box-sizing: border-box;
 }
 
+/* Give the center card a subtle emphasis */
 .calendar-month-wrapper--center {
-  flex: 1.1;
+  border-color: var(--accent);
+  box-shadow: var(--shadow-md);
 }
 
 .calendar-month {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: 2px;
   overflow: hidden;
 }
 
 .calendar-month-header {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--text-primary);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-secondary);
   text-align: center;
-  padding: var(--space-2) 0;
+  padding: 2px 0 4px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: var(--space-2);
+  margin-bottom: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .calendar-month .calendar-weekdays {
-  margin-bottom: var(--space-1);
-  border-bottom: 1px solid var(--border);
-  padding-bottom: var(--space-1);
+  margin-bottom: 2px;
 }
 
+/* Small day cells inside the strip */
 .calendar-month .calendar-day {
-  width: 32px;
-  height: 32px;
-  font-size: var(--font-size-xs);
-}
-
-@media (min-width: 900px) {
-  .calendar-month .calendar-day {
-    width: 36px;
-    height: 36px;
-    font-size: var(--font-size-sm);
-  }
-}
-
-@media (max-width: 640px) {
-  .calendar-months-container {
-    gap: var(--space-2);
-    overflow-x: auto;
-    padding-bottom: var(--space-2);
-  }
-  
-  .calendar-month-wrapper {
-    flex: 0 0 auto;
-    width: 280px;
-  }
-  
-  .calendar-month .calendar-day {
-    width: 32px;
-    height: 32px;
-  }
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 1;
+  font-size: 9px !important;
+  max-width: none !important;
 }
 
 /* Calendar Header */
@@ -509,29 +503,29 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-4);
-  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
   border-bottom: 1px solid var(--border);
 }
 
-.calendar-title {
-  font-size: var(--font-size-lg);
+/* Compact month/year label — replaces the old h2 calendar-title */
+.calendar-current-label {
+  font-size: var(--font-size-sm);
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0;
   letter-spacing: -0.01em;
 }
 
 .calendar-nav-btn {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  font-size: var(--font-size-lg);
+  font-size: var(--font-size-base);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--transition-base);
@@ -672,19 +666,17 @@ body {
   }
   
   .calendar-header {
-    flex-wrap: wrap;
-    gap: var(--space-3);
+    gap: var(--space-2);
   }
   
-  .calendar-title {
-    order: 0;
-    width: 100%;
-    text-align: center;
-    font-size: var(--font-size-md);
+  .calendar-current-label {
+    font-size: var(--font-size-xs);
   }
   
-  .calendar-nav-btn:first-child {
-    order: -1;
+  .calendar-nav-btn {
+    width: 28px;
+    height: 28px;
+    font-size: var(--font-size-sm);
   }
   
   .hour-selector-buttons {

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 
 export interface CalendarProps {
   /** Record of date strings (format: "YYYY-M-D") to hour values */
@@ -68,6 +68,15 @@ interface MonthData {
 export function Calendar({ selectedHours, onDayClick, selectedHour: _selectedHour }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  // sliding state: -1 (going prev), 0 (center), 1 (going next)
+  const [slideDir, setSlideDir] = useState(0)
+  const [isAnimating, setIsAnimating] = useState(false)
+
+  // drag / swipe state
+  const dragStartX = useRef<number | null>(null)
+  const dragDeltaX = useRef(0)
+  const [dragOffset, setDragOffset] = useState(0)
+  const isDragging = useRef(false)
 
   const centerDate = useMemo(() => ({
     year: currentDate.getFullYear(),
@@ -83,15 +92,55 @@ export function Calendar({ selectedHours, onDayClick, selectedHour: _selectedHou
     ]
   }, [centerDate])
 
-  const prevMonth = () => {
-    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))
+  const navigate = useCallback((dir: -1 | 1) => {
+    if (isAnimating) return
+    setIsAnimating(true)
+    setSlideDir(dir)
+    setTimeout(() => {
+      setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + dir, 1))
+      setSlideDir(0)
+      setIsAnimating(false)
+    }, 320)
+  }, [isAnimating])
+
+  const prevMonth = () => navigate(-1)
+  const nextMonth = () => navigate(1)
+
+  // -- Pointer / touch drag helpers --
+  const onDragStart = (clientX: number) => {
+    dragStartX.current = clientX
+    dragDeltaX.current = 0
+    isDragging.current = true
   }
 
-  const nextMonth = () => {
-    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))
+  const onDragMove = (clientX: number) => {
+    if (!isDragging.current || dragStartX.current === null) return
+    const delta = clientX - dragStartX.current
+    dragDeltaX.current = delta
+    setDragOffset(delta)
+  }
+
+  const onDragEnd = () => {
+    if (!isDragging.current) return
+    isDragging.current = false
+    const threshold = 60
+    if (dragDeltaX.current < -threshold) {
+      setDragOffset(0)
+      navigate(1)
+    } else if (dragDeltaX.current > threshold) {
+      setDragOffset(0)
+      navigate(-1)
+    } else {
+      // snap back
+      setDragOffset(0)
+    }
+    dragStartX.current = null
+    dragDeltaX.current = 0
   }
 
   const handleDayClick = (year: number, month: number, day: number) => {
+    // ignore click if it was a drag
+    if (Math.abs(dragDeltaX.current) > 5) return
     const clickedDate = new Date(year, month, day)
     setSelectedDate(clickedDate)
     onDayClick(clickedDate)
@@ -159,6 +208,13 @@ export function Calendar({ selectedHours, onDayClick, selectedHour: _selectedHou
     )
   }
 
+  // slide animation: translate strip by one full panel width
+  const slideTranslate = slideDir !== 0
+    ? `translateX(${slideDir === -1 ? '33.333%' : '-33.333%'})`
+    : dragOffset !== 0
+    ? `translateX(${dragOffset}px)`
+    : 'translateX(0)'
+
   return (
     <div className="calendar">
       <div className="calendar-header">
@@ -170,9 +226,6 @@ export function Calendar({ selectedHours, onDayClick, selectedHour: _selectedHou
           ←
         </button>
 
-        <h2 className="calendar-title">
-          {MONTH_NAMES[centerDate.month]} {centerDate.year}
-        </h2>
 
         <button
           className="calendar-nav-btn"
@@ -183,12 +236,31 @@ export function Calendar({ selectedHours, onDayClick, selectedHour: _selectedHou
         </button>
       </div>
 
-      <div className="calendar-months-container">
-        {months.map((monthData, index) => (
-          <div key={index} className={`calendar-month-wrapper ${index === 1 ? 'calendar-month-wrapper--center' : ''}`}>
-            {renderMonth(monthData)}
-          </div>
-        ))}
+      {/* Swipe / drag container */}
+      <div
+        className="calendar-slider-viewport"
+        onPointerDown={e => onDragStart(e.clientX)}
+        onPointerMove={e => onDragMove(e.clientX)}
+        onPointerUp={() => onDragEnd()}
+        onPointerCancel={() => onDragEnd()}
+      >
+        <div
+          className="calendar-months-container"
+          style={{
+            transform: slideTranslate,
+            transition: slideDir !== 0
+              ? 'transform 320ms cubic-bezier(0.4, 0, 0.2, 1)'
+              : dragOffset !== 0
+              ? 'none'
+              : 'transform 220ms cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        >
+          {months.map((monthData, index) => (
+            <div key={index} className={`calendar-month-wrapper ${index === 1 ? 'calendar-month-wrapper--center' : ''}`}>
+              {renderMonth(monthData)}
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="calendar-legend">
