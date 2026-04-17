@@ -239,7 +239,7 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
             if (day === 0) {
               return <div key={`empty-${index}`} className="calendar-day calendar-day--empty" />
             }
-            //sdads
+
             const date = new Date(adjustedYear, adjustedMonth, day)
             const dateKey = formatDateKey(date)
             const hourAssigned = selectedHours[dateKey]
