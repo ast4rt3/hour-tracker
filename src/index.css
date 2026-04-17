@@ -584,6 +584,22 @@ body {
   box-shadow: var(--shadow-glow);
 }
 
+/* Weekends in red */
+.calendar-weekend {
+  color: var(--danger) !important;
+}
+
+/* Holidays in orange */
+.calendar-holiday {
+  color: var(--hour-9) !important;
+  font-weight: 700;
+}
+
+button.calendar-day:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
 /* Calendar Legend */
 .calendar-legend {
   display: flex;

@@ -25,6 +25,41 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ]
 
+const FIXED_HOLIDAYS: Record<string, string> = {
+  '1-1': "New Year's Day",
+  '2-25': "EDSA Revolution Anniversary",
+  '4-9': "Araw ng Kagitingan",
+  '5-1': "Labor Day",
+  '6-12': "Independence Day",
+  '8-21': "Ninoy Aquino Day",
+  '11-1': "All Saints' Day",
+  '11-30': "Bonifacio Day",
+  '12-8': "Feast of the Immaculate Conception",
+  '12-25': "Christmas Day",
+  '12-30': "Rizal Day",
+  '12-31': "Last Day of the Year",
+}
+
+const VARIABLE_HOLIDAYS_2026: Record<string, string> = {
+  '2026-2-17': "Chinese New Year",
+  '2026-3-20': "Eid'l Fitr",
+  '2026-4-2': "Maundy Thursday",
+  '2026-4-3': "Good Friday",
+  '2026-4-4': "Black Saturday",
+  '2026-5-27': "Eid'l Adha",
+  '2026-8-31': "National Heroes Day",
+}
+
+function getHolidayName(year: number, month: number, day: number): string | null {
+  const fixedKey = `${month}-${day}`;
+  if (FIXED_HOLIDAYS[fixedKey]) return FIXED_HOLIDAYS[fixedKey];
+  
+  const variableKey = `${year}-${month}-${day}`;
+  if (VARIABLE_HOLIDAYS_2026[variableKey]) return VARIABLE_HOLIDAYS_2026[variableKey];
+  
+  return null;
+}
+
 function getDaysInMonth(year: number, month: number): number {
   return new Date(year, month + 1, 0).getDate()
 }
@@ -75,9 +110,9 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
   const [isAnimating, setIsAnimating] = useState(false)
 
   // drag / swipe state
+  const containerRef = useRef<HTMLDivElement>(null)
   const dragStartX = useRef<number | null>(null)
   const dragDeltaX = useRef(0)
-  const [dragOffset, setDragOffset] = useState(0)
   const isDragging = useRef(false)
 
   const centerDate = useMemo(() => ({
@@ -98,11 +133,17 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
     if (isAnimating) return
     setIsAnimating(true)
     setSlideDir(dir)
+    
+    // clear inline transform from drag so class transform fully takes over
+    if (containerRef.current) {
+       containerRef.current.style.transform = ''
+    }
+
     setTimeout(() => {
       setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + dir, 1))
       setSlideDir(0)
       setIsAnimating(false)
-    }, 320)
+    }, 250) // snappier animation
   }, [isAnimating])
 
   const prevMonth = () => navigate(-1)
@@ -110,31 +151,42 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
 
   // -- Pointer / touch drag helpers --
   const onDragStart = (clientX: number) => {
+    if (isAnimating) return
     dragStartX.current = clientX
     dragDeltaX.current = 0
     isDragging.current = true
+    if (containerRef.current) {
+      containerRef.current.style.transition = 'none'
+    }
   }
 
   const onDragMove = (clientX: number) => {
     if (!isDragging.current || dragStartX.current === null) return
     const delta = clientX - dragStartX.current
     dragDeltaX.current = delta
-    setDragOffset(delta)
+    if (containerRef.current) {
+      containerRef.current.style.transform = `translateX(${delta}px)`
+    }
   }
 
   const onDragEnd = () => {
     if (!isDragging.current) return
     isDragging.current = false
     const threshold = 60
+    
+    if (containerRef.current) {
+       containerRef.current.style.transition = ''
+    }
+
     if (dragDeltaX.current < -threshold) {
-      setDragOffset(0)
       navigate(1)
     } else if (dragDeltaX.current > threshold) {
-      setDragOffset(0)
       navigate(-1)
     } else {
       // snap back
-      setDragOffset(0)
+      if (containerRef.current) {
+         containerRef.current.style.transform = 'translateX(0)'
+      }
     }
     dragStartX.current = null
     dragDeltaX.current = 0
@@ -164,8 +216,8 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
         </div>
         
         <div className="calendar-weekdays">
-          {DAY_NAMES.map(name => (
-            <div key={name} className="calendar-weekday">
+          {DAY_NAMES.map((name, index) => (
+            <div key={name} className={`calendar-weekday ${index === 0 || index === 6 ? 'calendar-weekend' : ''}`}>
               {name}
             </div>
           ))}
@@ -187,10 +239,13 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
               selectedDate.getDate() === day
             )
 
+            const isWeekend = index % 7 === 0 || index % 7 === 6
+            const holiday = getHolidayName(adjustedYear, adjustedMonth + 1, day)
+
             return (
               <button
                 key={`day-${day}-${index}`}
-                className={`calendar-day ${isSelected ? 'calendar-day--selected' : ''}`}
+                className={`calendar-day ${isSelected ? 'calendar-day--selected' : ''} ${isWeekend ? 'calendar-weekend' : ''} ${holiday ? 'calendar-holiday' : ''}`}
                 style={{
                   backgroundColor: bgColor,
                   ...(isSelected ? {
@@ -198,8 +253,10 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
                     outlineOffset: '2px',
                   } : {})
                 }}
+                disabled={isWeekend}
+                title={holiday || undefined}
                 onClick={() => handleDayClick(adjustedYear, adjustedMonth, day)}
-                aria-label={`${MONTH_NAMES[adjustedMonth]} ${day}, ${adjustedYear}`}
+                aria-label={holiday ? `${holiday} (${MONTH_NAMES[adjustedMonth]} ${day}, ${adjustedYear})` : `${MONTH_NAMES[adjustedMonth]} ${day}, ${adjustedYear}`}
               >
                 {day}
               </button>
@@ -210,11 +267,9 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
     )
   }
 
-  // slide animation: translate strip by one full panel width
+  // class-based slide animation for navigation actions
   const slideTranslate = slideDir !== 0
     ? `translateX(${slideDir === -1 ? '33.333%' : '-33.333%'})`
-    : dragOffset !== 0
-    ? `translateX(${dragOffset}px)`
     : 'translateX(0)'
 
   return (
@@ -252,14 +307,13 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
         onPointerCancel={() => onDragEnd()}
       >
         <div
+          ref={containerRef}
           className="calendar-months-container"
           style={{
             transform: slideTranslate,
             transition: slideDir !== 0
-              ? 'transform 320ms cubic-bezier(0.4, 0, 0.2, 1)'
-              : dragOffset !== 0
-              ? 'none'
-              : 'transform 220ms cubic-bezier(0.4, 0, 0.2, 1)',
+              ? 'transform 250ms cubic-bezier(0.4, 0, 0.2, 1)'
+              : 'transform 250ms cubic-bezier(0.4, 0, 0.2, 1)',
           }}
         >
           {months.map((monthData, index) => (
