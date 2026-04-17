@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useCallback } from 'react'
-
+import HourSelector from './HourSelector'
 export interface CalendarProps {
   /** Record of date strings (format: "YYYY-M-D") to hour values */
   selectedHours: Record<string, number>
@@ -7,6 +7,8 @@ export interface CalendarProps {
   onDayClick: (date: Date) => void
   /** Currently selected hour from HourSelector (pending assignment) */
   selectedHour: number | null
+  /** Callback fired when an hour is selected */
+  onHourSelect?: (hour: number) => void
 }
 
 const HOUR_COLORS: Record<number, string> = {
@@ -65,7 +67,7 @@ interface MonthData {
   gridDays: number[]
 }
 
-export function Calendar({ selectedHours, onDayClick, selectedHour: _selectedHour }: CalendarProps) {
+export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect }: CalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   // sliding state: -1 (going prev), 0 (center), 1 (going next)
@@ -226,7 +228,12 @@ export function Calendar({ selectedHours, onDayClick, selectedHour: _selectedHou
           ←
         </button>
 
-
+        {onHourSelect && (
+          <HourSelector 
+            selectedHour={selectedHour} 
+            onHourSelect={onHourSelect} 
+          />
+        )}
         <button
           className="calendar-nav-btn"
           onClick={nextMonth}

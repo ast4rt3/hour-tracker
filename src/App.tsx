@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react'
 import { Calendar, type CalendarProps } from './components'
-import HourSelector from './components/HourSelector'
 import { HOUR_COLORS, HourEntry } from './types'
 
 function formatDateKey(date: Date): string {
@@ -75,13 +74,6 @@ export default function App() {
 
       <div className="app-layout">
         <aside className="app-sidebar">
-          <div className="panel">
-            <HourSelector 
-              selectedHour={pendingHour} 
-              onHourSelect={handleHourSelect} 
-            />
-          </div>
-
           <div className="panel stats-panel">
             <h2>Statistics</h2>
             <div className="stats-grid">
@@ -119,6 +111,7 @@ export default function App() {
             <Calendar
               selectedHours={selectedHours}
               selectedHour={pendingHour}
+              onHourSelect={handleHourSelect}
               onDayClick={handleDayClick}
             />
           </div>
