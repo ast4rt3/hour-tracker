@@ -16,7 +16,6 @@ const HOURS = [
 export function HourSelector({ selectedHour, onHourSelect }: HourSelectorProps) {
   return (
     <div className="hour-selector">
-      <span className="hour-selector-label">Select Hour</span>
       <div className="hour-selector-buttons">
         {HOURS.map(({ hour, color, bgLight, label }) => {
           const isSelected = selectedHour === hour
@@ -36,11 +35,6 @@ export function HourSelector({ selectedHour, onHourSelect }: HourSelectorProps) 
           )
         })}
       </div>
-      {selectedHour && (
-        <div className="hour-selector-status">
-          Selected: <strong style={{ color: HOUR_COLORS[selectedHour] }}>{selectedHour} AM</strong>
-        </div>
-      )}
     </div>
   )
 }

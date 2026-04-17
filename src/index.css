@@ -326,16 +326,7 @@ body {
    =========================================== */
 .hour-selector {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.hour-selector-label {
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  align-items: center;
 }
 
 .hour-selector-buttons {
@@ -406,14 +397,6 @@ body {
   box-shadow: 0 0 8px var(--hour-color);
 }
 
-.hour-selector-status {
-  font-size: var(--font-size-sm);
-  color: var(--text-muted);
-  padding: var(--space-2) var(--space-3);
-  background: var(--bg-secondary);
-  border-radius: var(--radius-md);
-  text-align: center;
-}
 
 /* ===========================================
    Calendar Component
