@@ -50,6 +50,17 @@ const VARIABLE_HOLIDAYS_2026: Record<string, string> = {
   '2026-8-31': "National Heroes Day",
 }
 
+interface SpecialDate {
+  title: string
+  className: string
+}
+
+const SPECIAL_DATES: Record<string, SpecialDate> = {
+  '3-16': { title: 'Flexible work arrangement', className: 'calendar-special-green' },
+  '2-23': { title: 'Batch 1', className: 'calendar-special-green' },
+  '2-24': { title: 'Batch 2', className: 'calendar-special-green' },
+}
+
 function getHolidayName(year: number, month: number, day: number): string | null {
   const fixedKey = `${month}-${day}`;
   if (FIXED_HOLIDAYS[fixedKey]) return FIXED_HOLIDAYS[fixedKey];
@@ -241,11 +252,15 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
 
             const isWeekend = index % 7 === 0 || index % 7 === 6
             const holiday = getHolidayName(adjustedYear, adjustedMonth + 1, day)
+            const specialDateKey = `${adjustedMonth + 1}-${day}`
+            const specialDate = SPECIAL_DATES[specialDateKey]
+
+            const title = specialDate ? specialDate.title : holiday || undefined
 
             return (
               <button
                 key={`day-${day}-${index}`}
-                className={`calendar-day ${isSelected ? 'calendar-day--selected' : ''} ${isWeekend ? 'calendar-weekend' : ''} ${holiday ? 'calendar-holiday' : ''}`}
+                className={`calendar-day ${isSelected ? 'calendar-day--selected' : ''} ${isWeekend ? 'calendar-weekend' : ''} ${holiday ? 'calendar-holiday' : ''} ${specialDate ? specialDate.className : ''}`}
                 style={{
                   backgroundColor: bgColor,
                   ...(isSelected ? {
@@ -254,9 +269,9 @@ export function Calendar({ selectedHours, onDayClick, selectedHour, onHourSelect
                   } : {})
                 }}
                 disabled={isWeekend}
-                title={holiday || undefined}
+                title={title}
                 onClick={() => handleDayClick(adjustedYear, adjustedMonth, day)}
-                aria-label={holiday ? `${holiday} (${MONTH_NAMES[adjustedMonth]} ${day}, ${adjustedYear})` : `${MONTH_NAMES[adjustedMonth]} ${day}, ${adjustedYear}`}
+                aria-label={title ? `${title} (${MONTH_NAMES[adjustedMonth]} ${day}, ${adjustedYear})` : `${MONTH_NAMES[adjustedMonth]} ${day}, ${adjustedYear}`}
               >
                 {day}
               </button>
